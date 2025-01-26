@@ -2,19 +2,15 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "imageUtils.h"
 
 using namespace std;
 
 int main(int argc, char const *argv[])
 {
-    if (argc == 0)
-    {
-        cerr << "main [image file name] [destination file name]" << endl;
-    }
-    else
-    {
-        
-    }
+    string imgFile = "test_img.jpg";
+    string destFile = "test_img_data.txt";
+    parseJpgImage(imgFile, destFile);
     return 0;
 }
 
