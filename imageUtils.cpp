@@ -113,3 +113,74 @@ void parseJpgImage(const string &imageName, const string &destinationName)
     }
     cout << endl;
 }
+
+// Function to reverse the byte order of a 4-byte integer
+int reverseBytes(int value)
+{
+    return ((value >> 24) & 0xFF) | // Move byte 0 to byte 3
+           ((value << 8) & 0xFF0000) | // Move byte 1 to byte 2
+           ((value >> 8) & 0xFF00) |   // Move byte 2 to byte 1
+           ((value << 24) & 0xFF000000); // Move byte 3 to byte 0
+}
+
+void parsePngImage(const string &imageName, const string &destinationName)
+{
+    ifstream ifs (imageName);
+    ifs.seekg(ios::beg);
+
+    // read file signature
+    char file_signature[8];
+    for (int i=0; i<8; i++)
+    {
+        ifs.read(&file_signature[i], sizeof(char));
+    }
+    cout << "format:     "
+         << (char)file_signature[1] 
+         << (char)file_signature[2] 
+         << (char)file_signature[3] 
+         << endl;
+    if (!(file_signature[0] == (char)0x89
+     && file_signature[1] == (char)0x50
+     && file_signature[2] == (char)0x4e
+     && file_signature[3] == (char)0x47
+     && file_signature[4] == (char)0x0d
+     && file_signature[5] == (char)0x0a
+     && file_signature[6] == (char)0x1a
+     && file_signature[7] == (char)0x0a))
+    {
+    cerr << "file isn't in PNG format" << endl;
+    }
+
+    // read image header
+    int header_size;
+    vector<char> header_identifier(4);
+    int image_width, image_height;
+    int bpp, color, compression, filter, interlace;
+    ifs.read((char*)&header_size, sizeof(header_size));
+    header_size = reverseBytes(header_size); // the files stores integers in big-endian format
+    ifs.read(header_identifier.data(), 4);
+    ifs.read((char*)&image_width, sizeof(image_width));
+    image_width = reverseBytes(image_width);
+    ifs.read((char*)&image_height, sizeof(image_height));
+    image_height = reverseBytes(image_height);
+    unsigned char byte;
+    ifs.read((char*)&byte, 1);
+    bpp = (int)byte;
+    ifs.read((char*)&byte, 1);
+    color = (int)byte;
+    ifs.read((char*)&byte, 1);
+    compression = (int)byte;
+    ifs.read((char*)&byte, 1);
+    filter = (int)byte;
+    ifs.read((char*)&byte, 1);
+    interlace = (int)byte;
+    
+    cout << header_identifier[0] << header_identifier[1] << header_identifier[2] << header_identifier[3] << ":       " << header_size << " bytes" << endl;
+    cout << "width:      " << image_width << "px" << endl;
+    cout << "height:     " << image_height << "px" << endl;
+    cout << "bpp:        " << bpp << endl; 
+    cout << "color:      " << color << endl; 
+    cout << "compress:   " << compression << endl; 
+    cout << "filter:     " << filter << endl; 
+    cout << "interlace:  " << interlace << endl; 
+}

@@ -12,7 +12,10 @@ struct ImageData
     vector<int> data; // for now, an int represents a pixel
 };
 
-// writes the data of an image into another file
+// writes the data of an image into another file (doesn't work yet...)
 void parseJpgImage(const string &imageName, const string &destinationName);
+
+// parse a png image
+void parsePngImage(const string &imageName, const string &destinationName);
 
 #endif
