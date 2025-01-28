@@ -189,7 +189,7 @@ void parsePngImage(const string &imageName, const string &destinationName)
     cout << "filter:     " << filter << endl; 
     cout << "interlace:  " << interlace << endl;
 
-    // read image data
+    // find image data
     int data_size;
     vector<char> data_id(4);
 
@@ -198,11 +198,14 @@ void parsePngImage(const string &imageName, const string &destinationName)
     ifs.read(data_id.data(), 4);
     
     // skip over unnecessary data chunks (for now)
-    while (!(data_id[0] == (char)0x54 &&
-             data_id[1] == (char)0x41 &&
+    while (!(data_id[0] == (char)0x49 &&
              data_id[1] == (char)0x44 &&
-             data_id[1] == (char)0x49))
+             data_id[2] == (char)0x41 &&
+             data_id[3] == (char)0x54))
     {
+        cout << endl << data_id[0] << data_id[1] << data_id[2] << data_id[3] << ":       " << data_size << " bytes" << endl;
+        cout << "(skipped)" << endl;
+
         //skip unnecessary data
         ifs.seekg(4 + data_size,ios::cur);
 
@@ -210,16 +213,27 @@ void parsePngImage(const string &imageName, const string &destinationName)
         ifs.read((char*)&data_size, 4);
         data_size = reverseBytes(data_size); // the files stores integers in big-endian format
         ifs.read(data_id.data(), 4);
-        cout << endl << data_id[0] << data_id[1] << data_id[2] << data_id[3] << ":       " << data_size << " bytes" << endl;
         if (data_size == 0)
         {
+            // reached the end of the file
+            cerr << "file is missing mandatory IDAT data" << endl;
             break;
         }
     }
 
-    int compression_method, add_flag_checks;
-
     cout << endl << data_id[0] << data_id[1] << data_id[2] << data_id[3] << ":       " << data_size << " bytes" << endl;
 
-    // TODO skip over the non essencial data chunks (those which start with a non capital letter)
+    // read image data
+    int compression_method, add_flag_checks;
+    ifs.read((char*)&byte, 1);
+    compression_method = (int)byte;
+    if (compression_method != 8)
+    {
+        cerr << "invalid compression method" << endl;
+    }
+    ifs.read((char*)&byte, 1);
+    add_flag_checks = (int)byte;
+
+    cout << "comp_meth:      " << compression_method << endl;
+    cout << "add_flag_check: " << add_flag_checks << endl;
 }
