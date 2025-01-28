@@ -12,6 +12,9 @@ struct ImageData
     vector<int> data; // for now, an int represents a pixel
 };
 
+// Function to reverse the byte order of a 4-byte integer
+int reverseBytes(int value);
+
 // writes the data of an image into another file (doesn't work yet...)
 void parseJpgImage(const string &imageName, const string &destinationName);
 

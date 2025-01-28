@@ -164,23 +164,62 @@ void parsePngImage(const string &imageName, const string &destinationName)
     ifs.read((char*)&image_height, sizeof(image_height));
     image_height = reverseBytes(image_height);
     unsigned char byte;
-    ifs.read((char*)&byte, 1);
-    bpp = (int)byte;
+    ifs.read((char*)&byte, 1); 
+    bpp = (int)byte;                // number of bits per sample or per palette index (not per pixel)
     ifs.read((char*)&byte, 1);
     color = (int)byte;
     ifs.read((char*)&byte, 1);
-    compression = (int)byte;
+    compression = (int)byte;     // only 0
     ifs.read((char*)&byte, 1);
-    filter = (int)byte;
+    filter = (int)byte;          // only 0
     ifs.read((char*)&byte, 1);
-    interlace = (int)byte;
+    interlace = (int)byte;       // 0: no interlace,  1: Adam7 interlace
+
+    //skip the CRC for now
+    cout << ifs.tellg() << endl;
+    ifs.seekg(4,ios::cur);
+    cout << ifs.tellg() << endl;
     
-    cout << header_identifier[0] << header_identifier[1] << header_identifier[2] << header_identifier[3] << ":       " << header_size << " bytes" << endl;
+    cout << endl << header_identifier[0] << header_identifier[1] << header_identifier[2] << header_identifier[3] << ":       " << header_size << " bytes" << endl;
     cout << "width:      " << image_width << "px" << endl;
     cout << "height:     " << image_height << "px" << endl;
     cout << "bpp:        " << bpp << endl; 
     cout << "color:      " << color << endl; 
     cout << "compress:   " << compression << endl; 
     cout << "filter:     " << filter << endl; 
-    cout << "interlace:  " << interlace << endl; 
+    cout << "interlace:  " << interlace << endl;
+
+    // read image data
+    int data_size;
+    vector<char> data_id(4);
+
+    ifs.read((char*)&data_size, 4);
+    data_size = reverseBytes(data_size); // the files stores integers in big-endian format
+    ifs.read(data_id.data(), 4);
+    
+    // skip over unnecessary data chunks (for now)
+    while (!(data_id[0] == (char)0x54 &&
+             data_id[1] == (char)0x41 &&
+             data_id[1] == (char)0x44 &&
+             data_id[1] == (char)0x49))
+    {
+        //skip unnecessary data
+        ifs.seekg(4 + data_size,ios::cur);
+
+        // read new size/identifier
+        ifs.read((char*)&data_size, 4);
+        data_size = reverseBytes(data_size); // the files stores integers in big-endian format
+        ifs.read(data_id.data(), 4);
+        cout << endl << data_id[0] << data_id[1] << data_id[2] << data_id[3] << ":       " << data_size << " bytes" << endl;
+        if (data_size == 0)
+        {
+            break;
+        }
+    }
+
+    int compression_method, add_flag_checks;
+
+    cout << endl << data_id[0] << data_id[1] << data_id[2] << data_id[3] << ":       " << data_size << " bytes" << endl;
+
+    // TODO skip over the non essencial data chunks (those which start with a non capital letter)
 }
