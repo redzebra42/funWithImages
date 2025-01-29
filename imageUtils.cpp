@@ -223,17 +223,31 @@ void parsePngImage(const string &imageName, const string &destinationName)
 
     cout << endl << data_id[0] << data_id[1] << data_id[2] << data_id[3] << ":       " << data_size << " bytes" << endl;
 
-    // read image data
-    int compression_method, add_flag_checks;
+    // read zlib data
+    int cmf, flg;
+    int cm, cinfo;
+    int fcheck, fdict, flevel;
     ifs.read((char*)&byte, 1);
-    compression_method = (int)byte;
-    if (compression_method != 8)
+    cmf = (int)byte;
+    cm = (int)byte & 15;      // bits 0 to 3
+    cinfo = (int)byte >> 4;   // bits 4 to 7
+    if (cm != 8)
     {
         cerr << "invalid compression method" << endl;
     }
     ifs.read((char*)&byte, 1);
-    add_flag_checks = (int)byte;
+    flg = (int)byte;
+    fcheck = (int)byte & 31;  // bits 0 to 4
+    fdict = (int)byte & 32;   // bit 5
+    flevel = (int)byte >> 5;  // bits 6 to 7
+    if ((cmf*256 + flg) % 31 > 0)
+    {
+        cerr << "invalid compression method and flag" << endl;
+    }
 
-    cout << "comp_meth:      " << compression_method << endl;
-    cout << "add_flag_check: " << add_flag_checks << endl;
+    cout << "comp_meth:  " << cm << endl;
+    cout << "c_info:     " << cinfo << endl;
+    cout << "f_check:    " << fcheck << endl;
+    cout << "f_dict:     " << fdict << endl;
+    cout << "f_level:    " << flevel << endl;
 }
